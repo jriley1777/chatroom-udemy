@@ -1,0 +1,10 @@
+
+export const USER_ACTIONS = {
+    SET_USER: 'SET_USER',
+    CLEAR_USER: 'CLEAR_USER'
+};
+
+export const CHANNEL_ACTIONS = {
+    SET_ACTIVE_CHANNEL: 'SET_ACTIVE_CHANNEL',
+    SET_CHANNELS: 'SET_CHANNELS',
+}
