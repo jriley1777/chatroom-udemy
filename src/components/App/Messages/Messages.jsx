@@ -16,7 +16,7 @@ const Messages = props => {
              
         } else {
             return (
-                <div style={{opacity: 0.7, fontStyle: 'italic'}}>This is the beginning of the channel.  Add a message below.</div>
+                <div style={{opacity: 0.7, fontStyle: 'italic', marginTop: '1rem'}}>This is the beginning of the channel.  Add a message below.</div>
             )
         }
     }

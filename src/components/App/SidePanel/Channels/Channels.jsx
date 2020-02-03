@@ -29,7 +29,6 @@ const Channels = props => {
 
     useEffect(() => {
         channelsRef.once('value').then(snap => {
-            console.log(snap.val());
             let initialChannels = [];
             Object.values(snap.val()).map(x => {
                return initialChannels.push(x);
@@ -113,7 +112,7 @@ const Channels = props => {
                     onClick={() => { setActiveChannel( channel )}}
                     name={ channel.name }
                     style={{ opacity: 0.7 }}
-                    active={ activeChannel && channel.id === activeChannel.id }
+                    active={ !!(activeChannel && channel.id === activeChannel.id) }
                 ># { channel.name }</Menu.Item>
             )
         })
@@ -121,7 +120,6 @@ const Channels = props => {
 
     return (
         <>
-            {console.log(JSON.stringify(channels))}
             <Menu.Menu>
                 <Menu.Item>
                     <span style={{ marginRight: '0.2rem' }}>

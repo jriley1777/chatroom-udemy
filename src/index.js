@@ -31,8 +31,8 @@ const Root = props => {
               setUser(user);
               history.push(Constants.ROUTES.INDEX);
             } else {
+              history.push(Constants.ROUTES.LOGIN);
               clearUser();
-              history.push(Constants.ROUTES.LOGIN)
             }
         })
     }, [setUser, clearUser, history])

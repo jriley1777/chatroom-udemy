@@ -6,7 +6,7 @@ const MessagesHeader = props => {
     const { activeChannel } = props;
     return (
         <Segment clearing>
-            <Header fluid as="h2" floated="left" style={{marginBottom:0}}>
+            <Header fluid="true" as="h2" floated="left" style={{marginBottom:0}}>
                 <span>
                     { activeChannel.name }
                     <Icon name={"star outline"} color="black" />
