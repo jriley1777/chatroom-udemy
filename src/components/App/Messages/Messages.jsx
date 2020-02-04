@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import styled from 'styled-components';
 import firebase from '../../../utils/firebase/firebase';
 
 import { Segment, Comment } from 'semantic-ui-react';
@@ -6,12 +7,19 @@ import { Segment, Comment } from 'semantic-ui-react';
 import MessagesHeader from './MessagesHeader/MessagesHeader';
 import MessageForm from './MessageForm/MessageForm';
 import Message from './Message/Message';
+import Skeleton from './Skeleton/Skeleton';
+
+const StyledMessageComments = styled(Comment.Group)`
+    min-height: 50vh;
+    overflow-y: scroll;
+`;
 
 const Messages = props => {
     const { currentChannel, currentUser } = props;
     const messagesRef = firebase.database().ref('messages');
     const [messages, setMessages] = useState([]);
     const [messagesLoading, setMessagesLoading] = useState(true);
+    const messagesEnd = React.createRef();
 
     useEffect(() => {
         let key = currentChannel && currentChannel.id;
@@ -30,6 +38,7 @@ const Messages = props => {
             const listener = ref.on('child_added', snap => {
                 loadedMessages.push(snap.val());
                 setMessages(loadedMessages);
+                messagesEnd && messagesEnd.current && messagesEnd.current.scrollIntoView({ behavior: 'smooth ' });
             })
             return () => ref.off('child_added', listener);
         }
@@ -40,7 +49,9 @@ const Messages = props => {
 
     const renderMessages = () => {
         if (messagesLoading) {
-            return <div>Messages loading...</div>
+            return [...Array(10)].map((_,i) => {
+                return <Skeleton key={i} />
+            })
         } else if(messages.length > 0){
             return messages.map((msg, i) => {
                 return (
@@ -63,9 +74,10 @@ const Messages = props => {
                 currentChannel={ currentChannel }
             />
             <Segment>
-                <Comment.Group className="messages">
+                <StyledMessageComments className="messages">
                     { renderMessages() }
-                </Comment.Group>
+                </StyledMessageComments>
+                <div ref={messagesEnd}></div>
             </Segment>
             <MessageForm 
                 currentUser={ currentUser }
