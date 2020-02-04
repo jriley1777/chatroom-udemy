@@ -1,7 +1,21 @@
 import React, { useState } from 'react';
+import styled from 'styled-components';
 import firebase from '../../../../utils/firebase/firebase';
 
 import { Segment, Button, Input, Message } from 'semantic-ui-react';
+import { Picker, emojiIndex } from 'emoji-mart';
+import 'emoji-mart/css/emoji-mart.css';
+
+const StyledMessageForm = styled(Segment).attrs({
+    className: 'message__form'
+})`
+    position: fixed !important;
+    bottom: 1em;
+    margin-left: 320px !important;
+    left: 0;
+    right: 1em;
+    z-index: 200
+`
 
 const MessageForm = props => {
     const { messagesRef, currentUser, currentChannel } = props;
@@ -9,6 +23,9 @@ const MessageForm = props => {
     const [ message, setMessage ] = useState('');
     const [ loading, setLoading ] = useState(false);
     const [ errors, setErrors ] = useState('');
+    const [ emojiPicker, setEmojiPicker ] = useState(false);
+
+    const inputRef = React.createRef();
 
     const handleChange = e => {
         setErrors('');
@@ -50,15 +67,67 @@ const MessageForm = props => {
         }
     }
 
+    const handleTogglePicker = () => {
+        setEmojiPicker(!emojiPicker);
+    }
+
+    const colonToUnicode = message => {
+        return message.replace(/:[A-Za-z0-9_+-]+:/g, x => {
+            x = x.replace(/:/g, "");
+            let emoji = emojiIndex.emojis[x];
+            if( typeof(emoji) !== "undefined") {
+                let unicode = emoji.native;
+                if( typeof(unicode) !== "undefined") {
+                    return unicode;
+                }
+            }
+            x = ":" + x + ":";
+            return x;
+        });
+    }
+
+    const handleAddEmoji = emoji => {
+        const oldMessage = message;
+        const newMessage = colonToUnicode(`${oldMessage} ${emoji.colons}`);
+        setMessage(newMessage);
+        setEmojiPicker(false);
+        inputRef.current.focus();
+    }
+
+    const handleKeyDown = event => {
+        { console.log( inputRef ) }
+        if (event.keyCode === 13 && inputRef.current.props.id === document.activeElement.id) {
+            sendMessage();
+        }
+    }
+
     return (
-        <Segment className="message__form">
+        <StyledMessageForm>
+            { emojiPicker && (
+                <Picker 
+                    set="apple"
+                    className="emojiPicker"
+                    title="Pick your emoji"
+                    emoji="point_up"
+                    onSelect={ handleAddEmoji }
+                    darkMode={false}
+                    style={{ position: 'absolute', bottom: '100%'}}
+                />
+            )}
             <Input
                 fluid
+                id="messageInput"
                 name="message"
                 onChange={ handleChange }
+                onKeyDown={ handleKeyDown }
                 value={ message }
+                ref={inputRef}
                 style={{ marginBottom: '0.7em' }}
-                label={<Button icon={'add'} />}
+                label={
+                    <Button 
+                        icon={emojiPicker ? 'close' : 'add'} 
+                        onClick={ handleTogglePicker }
+                    />}
                 labelPosition="left"
                 placeholder="Write your message"
             />
@@ -79,7 +148,7 @@ const MessageForm = props => {
                 />
             </Button.Group>
             { renderErrors() }
-        </Segment>
+        </StyledMessageForm>
     )
 };
 
