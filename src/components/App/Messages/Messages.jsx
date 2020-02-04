@@ -5,12 +5,13 @@ import { Segment, Comment } from 'semantic-ui-react';
 
 import MessagesHeader from './MessagesHeader/MessagesHeader';
 import MessageForm from './MessageForm/MessageForm';
-
+import Message from './Message/Message';
 
 const Messages = props => {
     const { currentChannel, currentUser } = props;
     const messagesRef = firebase.database().ref('messages');
     const [messages, setMessages] = useState([]);
+    const [messagesLoading, setMessagesLoading] = useState(true);
 
     useEffect(() => {
         let key = currentChannel && currentChannel.id;
@@ -18,10 +19,12 @@ const Messages = props => {
             const ref = messagesRef.child(key);
             ref.once('value', snap => {
                 let initialMessages = [];
+                console.log('run');
                 Object.values(snap.val()).map(x => {
                     initialMessages.push(x);
                 })
                 setMessages(initialMessages);
+                setMessagesLoading(false);
             });
             let loadedMessages = [];
             const listener = ref.on('child_added', snap => {
@@ -36,9 +39,17 @@ const Messages = props => {
     }, [currentChannel])
 
     const renderMessages = () => {
-        if(messages.length > 0){
+        if (messagesLoading) {
+            return <div>Messages loading...</div>
+        } else if(messages.length > 0){
             return messages.map((msg, i) => {
-                return <div key={i}>{msg.user.name} - { msg.content }</div>
+                return (
+                <Message 
+                    key={msg.timestamp}
+                    currentUser={currentUser}
+                    message={msg} 
+                />
+                )
             })
         } else {
             return (
