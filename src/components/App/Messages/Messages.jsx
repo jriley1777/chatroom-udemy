@@ -1,19 +1,45 @@
-import React from "react";
-import { connect } from 'react-redux';
+import React, { useEffect, useState } from "react";
+import firebase from '../../../utils/firebase/firebase';
 
 import { Segment, Comment } from 'semantic-ui-react';
 
 import MessagesHeader from './MessagesHeader/MessagesHeader';
 import MessageForm from './MessageForm/MessageForm';
 
-import * as Selectors from '../../../selectors/index';
 
 const Messages = props => {
-    const { activeChannel, messages } = props;
+    const { currentChannel, currentUser } = props;
+    const messagesRef = firebase.database().ref('messages');
+    const [messages, setMessages] = useState([]);
+
+    useEffect(() => {
+        let key = currentChannel && currentChannel.id;
+        if (key) {
+            const ref = messagesRef.child(key);
+            ref.once('value', snap => {
+                let initialMessages = [];
+                Object.values(snap.val()).map(x => {
+                    initialMessages.push(x);
+                })
+                setMessages(initialMessages);
+            });
+            let loadedMessages = [];
+            const listener = ref.on('child_added', snap => {
+                loadedMessages.push(snap.val());
+                setMessages(loadedMessages);
+            })
+            return () => ref.off('child_added', listener);
+        }
+        
+        
+       
+    }, [currentChannel])
 
     const renderMessages = () => {
         if(messages.length > 0){
-             
+            return messages.map((msg, i) => {
+                return <div key={i}>{msg.user.name} - { msg.content }</div>
+            })
         } else {
             return (
                 <div style={{opacity: 0.7, fontStyle: 'italic', marginTop: '1rem'}}>This is the beginning of the channel.  Add a message below.</div>
@@ -23,21 +49,20 @@ const Messages = props => {
     return (
         <>
             <MessagesHeader 
-                activeChannel={ activeChannel }
+                currentChannel={ currentChannel }
             />
             <Segment>
                 <Comment.Group className="messages">
                     { renderMessages() }
                 </Comment.Group>
             </Segment>
-            <MessageForm />
+            <MessageForm 
+                currentUser={ currentUser }
+                currentChannel={ currentChannel }
+                messagesRef={ messagesRef }
+            />
         </>
     )
 };
 
-const mapStateToProps = state => ({
-    activeChannel: Selectors.getActiveChannel(state),
-    messages: []
-})
-
-export default connect(mapStateToProps, null)(Messages);
+export default Messages; 

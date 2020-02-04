@@ -49,7 +49,7 @@ const Root = props => {
 }
 
 const mapStateToProps = state => ({
-    isUserLoading: Selectors.getUserIsLoading(state)
+    isUserLoading: Selectors.getUserIsLoading(state),
 });
 
 const mapDispatchToProps = { setUser, clearUser };

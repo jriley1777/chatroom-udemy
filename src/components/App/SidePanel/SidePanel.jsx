@@ -1,10 +1,8 @@
 import React from "react";
-import { connect } from 'react-redux';
 import { Menu } from 'semantic-ui-react';
 
 import UserPanel from './UserPanel/UserPanel';
 import Channels from './Channels/Channels';
-import * as Selectors from '../../../selectors/index';
 
 const SidePanel = props => {
   const { currentUser } = props;
@@ -22,8 +20,5 @@ const SidePanel = props => {
   );
 };
 
-const mapStateToProps = state => ({
-  currentUser : Selectors.getCurrentUser(state)
-})
 
-export default connect(mapStateToProps, null)(SidePanel);
+export default SidePanel;
