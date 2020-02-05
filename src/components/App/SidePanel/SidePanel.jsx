@@ -5,7 +5,7 @@ import UserPanel from './UserPanel/UserPanel';
 import Channels from './Channels/Channels';
 
 const SidePanel = props => {
-  const { currentUser } = props;
+  const { currentUser, currentChannel } = props;
   return (
     <Menu
       size="large"
@@ -15,7 +15,7 @@ const SidePanel = props => {
       style={{ background: "#4c3c4c", fontSize: "1.2rem" }}
     >
       <UserPanel currentUser={ currentUser } />
-      <Channels currentUser={ currentUser} />
+      <Channels currentUser={currentUser} currentChannel={currentChannel} />
     </Menu>
   );
 };

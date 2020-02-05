@@ -95,7 +95,6 @@ const MessageForm = props => {
     }
 
     const handleKeyDown = event => {
-        { console.log( inputRef ) }
         if (event.keyCode === 13 && inputRef.current.props.id === document.activeElement.id) {
             sendMessage();
         }

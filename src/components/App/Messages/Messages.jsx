@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import styled from 'styled-components';
 import firebase from '../../../utils/firebase/firebase';
 
-import { Segment, Comment, Input } from 'semantic-ui-react';
+import { Segment, Comment } from 'semantic-ui-react';
 
 import MessagesHeader from './MessagesHeader/MessagesHeader';
 import MessageForm from './MessageForm/MessageForm';
@@ -28,13 +28,18 @@ const Messages = props => {
             setMessagesLoading(true);
             const listener = ref.on('value', snap => {
                 const loadedMessages = [];
+                if(!snap.val()) {
+                    setMessages([]);
+                    setMessagesLoading(false);
+                    return;
+                }
                 Object.values(snap.val()).map(x => {
                     return loadedMessages.push(x);
                 })
                 setMessages(loadedMessages);
                 setMessagesLoading(false);
                 if(endMessageRef.current) {
-                    endMessageRef.current.scrollIntoView(false, { behavior: 'smooth' })
+                    endMessageRef.current.scrollIntoView(false, { behavior: 'smooth'})
                 }
             })
             return () => ref.off('value', listener); 
@@ -72,7 +77,7 @@ const Messages = props => {
             <Segment>
                 <StyledMessageComments className="messages">
                     { renderMessages() }
-                    <div className="endMessages" ref={endMessageRef}></div>
+                    <div ref={ endMessageRef } />
                 </StyledMessageComments>
             </Segment>
             <MessageForm 

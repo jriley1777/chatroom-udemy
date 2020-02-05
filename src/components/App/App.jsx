@@ -18,6 +18,7 @@ const App = props => {
       <SidePanel
         userId={ currentUser && currentUser.uid }
         currentUser={ currentUser }
+        currentChannel={ currentChannel }
       />
       <Grid.Column style={{marginLeft: 320}}>
         <Messages 
@@ -35,7 +36,7 @@ const App = props => {
 
 const mapStateToProps = state => ({
   currentUser: Selectors.getCurrentUser(state),
-  currentChannel: Selectors.getActiveChannel(state),
+  currentChannel: Selectors.getCurrentChannel(state),
 })
 
 export default connect(mapStateToProps, null)(App);

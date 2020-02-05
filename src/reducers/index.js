@@ -18,12 +18,12 @@ const user_reducer = (state = { currentUser: null, isLoading: true } , action) =
     }
 }
 
-const channel_reducer = (state = { activeChannel: null, channels: [] }, action) => {
+const channel_reducer = (state = { currentChannel: null, channels: [] }, action) => {
     switch(action.type){
-        case Actions.CHANNEL_ACTIONS.SET_ACTIVE_CHANNEL:
+        case Actions.CHANNEL_ACTIONS.SET_CURRENT_CHANNEL:
             return {
                 ...state,
-                activeChannel: action.payload.channel
+                currentChannel: action.payload.channel
             }
         case Actions.CHANNEL_ACTIONS.SET_CHANNELS:
             return {
