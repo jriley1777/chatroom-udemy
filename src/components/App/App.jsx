@@ -11,7 +11,8 @@ import Messages from './Messages/Messages';
 import * as Selectors from '../../selectors/index';
 
 const App = props => {
-  const { currentUser, currentChannel } = props;
+  const { currentUser, currentChannel, isPrivateChannel } = props;
+
   return (
     <Grid columns="equal" className="app" style={{background: '#eee'}}>
       <ColorPanel />
@@ -25,10 +26,14 @@ const App = props => {
           channelId={currentChannel && currentChannel.id}
           currentUser={currentUser}
           currentChannel={currentChannel}
+          isPrivateChannel={isPrivateChannel}
         />
       </Grid.Column>
       <Grid.Column width={4}>
-        <MetaPanel />
+        <MetaPanel 
+          currentChannel={currentChannel}
+          isPrivateChannel={isPrivateChannel}
+        />
       </Grid.Column>
     </Grid>
   );
@@ -37,6 +42,7 @@ const App = props => {
 const mapStateToProps = state => ({
   currentUser: Selectors.getCurrentUser(state),
   currentChannel: Selectors.getCurrentChannel(state),
+  isPrivateChannel: false
 })
 
 export default connect(mapStateToProps, null)(App);

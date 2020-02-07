@@ -9,7 +9,7 @@ const MessagesHeader = props => {
             <Header fluid="true" as="h2" floated="left" style={{marginBottom:0}}>
                 <span>
                     {currentChannel.name }
-                    <Icon name={"star outline"} color="black" />
+                    <Icon name={"star outline"} color="black" style={{ marginLeft: '5px'}}/>
                 </span>
                 <Header.Subheader>2 Users</Header.Subheader>
             </Header>

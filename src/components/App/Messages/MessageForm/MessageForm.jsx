@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import firebase from '../../../../utils/firebase/firebase';
+import uuidv4 from 'uuid/v4';
+import axios from 'axios';
 
 import { Segment, Button, Input, Message } from 'semantic-ui-react';
 import { Picker, emojiIndex } from 'emoji-mart';
 import 'emoji-mart/css/emoji-mart.css';
+
+import FileModal from '../FileModal/FileModal';
 
 const StyledMessageForm = styled(Segment).attrs({
     className: 'message__form'
@@ -25,25 +29,55 @@ const MessageForm = props => {
     const [ errors, setErrors ] = useState('');
     const [ emojiPicker, setEmojiPicker ] = useState(false);
 
+    const [ showUploadModal, setShowUploadModal ] = useState(false);
+    const [ uploadState, setUploadState ] = useState('');
+
     const inputRef = React.createRef();
+    const storageRef = firebase.storage().ref();
 
     const handleChange = e => {
         setErrors('');
         setMessage(e.target.value);
     }
 
-    const sendMessage = e => {
-        if(message) {
-            setLoading(true)
-            const newMessage = {
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                content: message,
-                user: {
-                    id: currentUser.uid,
-                    name: currentUser.displayName,
-                    avatar: currentUser.photoURL
-                }
-            }
+    const createMessage = async (fileUrl = '') => {
+        let newMessage = {
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            user: {
+                id: currentUser.uid,
+                name: currentUser.displayName,
+                avatar: currentUser.photoURL
+            },
+        }
+        if (fileUrl) {
+            newMessage['image'] = fileUrl;
+        } else if(message.startsWith(":")) {
+            newMessage['content'] = await handleMessageCommand(message);
+        } else {
+            newMessage['content'] = message;
+        }
+        return newMessage;
+    }
+
+    const handleMessageCommand = async (message) => {
+        switch(message.split(" ")[0]){
+            case ':crypto':
+                const ticker = message.split(" ")[1].toUpperCase();
+                return await axios.get(`https://min-api.cryptocompare.com/data/price?fsym=${ticker}&tsyms=USD`).then(x => {
+                    return `The USD price for ${ticker} is: ${x.data.USD}`;
+                }).catch(err => {
+                    setErrors(err.message);
+                    return '';
+                })
+            default:
+                return '';
+        }
+    }
+
+    const sendTextMessage = async () => {
+        const newMessage = await createMessage();
+        if(newMessage && newMessage.content){
+            setLoading(true);
             messagesRef
                 .child(currentChannel.id)
                 .push()
@@ -55,10 +89,20 @@ const MessageForm = props => {
                     console.error(err);
                     setErrors(err);
                 });
-            setLoading(false);    
+            setLoading(false);
         }
     }
 
+    const sendFileMessage = (url, ref, pathToUpload) => {
+        const newMessage = createMessage(url);
+        if (newMessage) {
+            ref.child(pathToUpload)
+                .push()
+                .set(newMessage)
+        }
+        
+    }
+  
     const renderErrors = () => {
         if (errors) {
             return (
@@ -96,8 +140,31 @@ const MessageForm = props => {
 
     const handleKeyDown = event => {
         if (event.keyCode === 13 && inputRef.current.props.id === document.activeElement.id) {
-            sendMessage();
+            sendTextMessage();
         }
+    }
+
+    const uploadFile = (file, metadata) => {
+        const pathToUpload = currentChannel.id;
+        const ref = messagesRef;
+        const filePath = `chat/public/${uuidv4()}.jpg`;
+        setUploadState('loading');
+        const fileRef = storageRef.child(filePath);
+        fileRef.put(file,metadata).then(snapshot => {
+            snapshot.ref.getDownloadURL().then(url => {
+                console.log(url, ref, pathToUpload);
+                sendFileMessage(url, ref, pathToUpload);
+            })
+        }).catch(err => {
+            console.error(err);
+            setErrors(err.message);
+            setUploadState('error');
+        });
+
+        const listener = fileRef.put(file, metadata).on('state_changed', snap => {
+            const percentUploaded = Math.floor((snap.bytesTransferred / snap.totalBytes) * 100);
+        });
+
     }
 
     return (
@@ -132,7 +199,7 @@ const MessageForm = props => {
             />
             <Button.Group icon width="2">
                 <Button 
-                    onClick={ sendMessage }
+                    onClick={ sendTextMessage }
                     color="orange"
                     content="Add reply"
                     labelPosition="left"
@@ -144,6 +211,12 @@ const MessageForm = props => {
                     content="Upload Media"
                     labelPosition="right"
                     icon="cloud upload"
+                    onClick={() => setShowUploadModal(true) }
+                />
+                <FileModal 
+                    modal={ showUploadModal }
+                    closeModal={ () => setShowUploadModal(false) }
+                    uploadFile={ uploadFile }
                 />
             </Button.Group>
             { renderErrors() }
