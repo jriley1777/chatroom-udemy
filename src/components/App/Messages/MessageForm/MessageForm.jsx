@@ -214,6 +214,7 @@ const MessageForm = props => {
                     onClick={() => setShowUploadModal(true) }
                 />
                 <FileModal 
+                    disabled={ uploadState === 'uploading' }
                     modal={ showUploadModal }
                     closeModal={ () => setShowUploadModal(false) }
                     uploadFile={ uploadFile }

@@ -17,9 +17,14 @@ const StyledMessageComments = styled(Comment.Group)`
 
 const Messages = props => {
     const { currentChannel, currentUser } = props;
-    const messagesRef = firebase.database().ref('messages');
     const [messages, setMessages] = useState([]);
     const [messagesLoading, setMessagesLoading] = useState(true);
+    const [numUniqueUsers, setNumUniqueUsers] = useState('');
+    const [searchTerm, setSearchTerm] = useState(null);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [searchResults, setSearchResults] = useState([]);
+
+    const messagesRef = firebase.database().ref("messages");
     const endMessageRef = useRef(null);
 
     useEffect(() => {
@@ -41,14 +46,23 @@ const Messages = props => {
                 if(endMessageRef.current) {
                     endMessageRef.current.scrollIntoView(false, { behavior: 'smooth'})
                 }
+                countUniqueUsers(loadedMessages);
             })
             return () => ref.off('value', listener); 
         }
     }, [currentChannel]);
 
-    
+    const countUniqueUsers = messages => {
+        const uniqueUsers = messages.reduce((acc, message) => {
+            if(!acc.includes(message.user.name)){
+                acc.push(message.user.name);
+            }
+            return acc;
+        }, [])
+        setNumUniqueUsers(`${uniqueUsers.length} Users`)
+    } 
 
-    const renderMessages = () => {
+    const renderMessages = (messages) => {
         if (messagesLoading) {
             return [...Array(10)].map((_,i) => {
                 return <Skeleton key={i} />
@@ -69,14 +83,39 @@ const Messages = props => {
             )
         }
     }
+
+    const handleSearchChange = e => {
+        setSearchTerm(e.target.value);
+        setSearchLoading(true);
+    }
+
+    const handleSearchMessages = () => {
+        const channelMessages = [...messages];
+        const regex = new RegExp(searchTerm, 'gi');
+        const results = channelMessages.reduce((acc, message) => {
+            if(message.content && (message.content.match(regex) || message.user.name.match(regex))) {
+                acc.push(message);
+            }
+            return acc;
+        }, [])
+        setSearchResults(results);
+    }
+
+    useEffect(() => {
+        handleSearchMessages();
+        setSearchLoading(false);
+    }, [ searchTerm ]);
+
     return (
         <div>
             <MessagesHeader 
+                numUniqueUsers={ numUniqueUsers }
                 currentChannel={ currentChannel }
+                handleSearchChange={ handleSearchChange }
             />
             <Segment>
                 <StyledMessageComments className="messages">
-                    { renderMessages() }
+                    { searchTerm ? renderMessages(searchResults) : renderMessages(messages) }
                     <div ref={ endMessageRef } />
                 </StyledMessageComments>
             </Segment>
